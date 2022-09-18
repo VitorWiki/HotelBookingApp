@@ -2,8 +2,12 @@ package com.alten.hotelBooking;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
+@EnableConfigurationProperties
+@ComponentScan(basePackages = {"com.alten.hotelBooking"})
 public class HotelBookingApplication {
 
 	public static void main(String[] args) {
