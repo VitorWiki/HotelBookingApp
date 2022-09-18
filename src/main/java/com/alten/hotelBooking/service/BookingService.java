@@ -1,17 +1,22 @@
 package com.alten.hotelBooking.service;
 
+import com.alten.hotelBooking.controller.request.GetBookingRequest;
+import com.alten.hotelBooking.controller.request.PatchBookingRequest;
 import com.alten.hotelBooking.controller.request.PostBookingRequest;
+import com.alten.hotelBooking.controller.response.GetBookingResponse;
+import com.alten.hotelBooking.controller.response.PatchBookingResponse;
 import com.alten.hotelBooking.controller.response.PostBookingResponse;
 import com.alten.hotelBooking.mapper.EntityMapper;
-import com.alten.hotelBooking.repositories.RoomEntity;
+import com.alten.hotelBooking.repositories.entities.RoomEntity;
 import com.alten.hotelBooking.repositories.RoomRepository;
+import com.alten.hotelBooking.utils.DateValidator;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.sql.SQLDataException;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @Service
@@ -24,33 +29,11 @@ public class BookingService {
 
     public PostBookingResponse bookRoom(PostBookingRequest request) {
 
-        final long daysReserved = ChronoUnit.DAYS.between(request.getReservationStartDate(), request.getReservationEndDate());
+        LocalDate middleDay = DateValidator.getMiddleDate(request.getReservationStartDate(), request.getReservationEndDate());
 
-        LocalDate middleDay = null;
-        LocalDate today = LocalDate.now();
-        if (daysReserved == 3) {
-            middleDay = request.getReservationStartDate().plusDays(1);
-        }
+        DateValidator.dateValidations(request.getReservationStartDate(), request.getReservationEndDate(), middleDay);
 
-        if(daysReserved > 3) {
-            throw new RuntimeException("number of days for booking can't pass 3 days");
-        }
-
-        if(request.getReservationEndDate().isBefore(request.getReservationStartDate())) {
-            throw new RuntimeException("end date must be after start date");
-        }
-
-        if(ChronoUnit.DAYS.between(request.getReservationStartDate(), LocalDate.now()) > 30) {
-            throw new RuntimeException("reservations can only be made up until 30 days in the future");
-        }
-
-        if (today.isEqual(request.getReservationStartDate()) ||
-                today.isEqual( request.getReservationEndDate()) ||
-                today.isEqual(middleDay)) {
-            throw new RuntimeException("reservations can't be made for the same day");
-        }
-
-        Optional<RoomEntity> existingRoom  = roomRepository.findByRoomContaining(request.getReservationStartDate());
+        Optional<RoomEntity> existingRoom  = findExistingReservation(request.getReservationStartDate());
 
         if (existingRoom.isPresent()) {
             throw new RuntimeException("Room already booked for this date");
@@ -62,13 +45,47 @@ public class BookingService {
 
     }
 
+    public GetBookingResponse checkAvailability(GetBookingRequest request) {
+
+        Optional<RoomEntity> bookedRoom = findExistingReservation(request.getReservationDay());
+
+        if (bookedRoom.isPresent()) {
+            RoomEntity foundRoom = bookedRoom.get();
+            return new GetBookingResponse("Room not available", foundRoom.getReservationStartDate(), foundRoom.getReservationEndDate());
+        }
+
+        return new GetBookingResponse("Room available!", null, null);
+    }
+
+    public PatchBookingResponse updateBookingDate(PatchBookingRequest request) {
+
+        Optional<RoomEntity> currentBook = roomRepository.findById(request.getBookId());
+
+        if (currentBook.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No booking found");
+        }
+
+        LocalDate middleDay = DateValidator.getMiddleDate(request.getNewReservationStartDate(), request.getNewReservationEndDate());
+
+        DateValidator.dateValidations(request.getNewReservationStartDate(), request.getNewReservationEndDate(), middleDay);
+
+        RoomEntity updatedRoomReservation = roomRepository.save(Mappers.getMapper(EntityMapper.class).mapPatchFrom(request, currentBook.get(), middleDay));
+
+        return Mappers.getMapper(EntityMapper.class).mapFrom(updatedRoomReservation);
+
+    }
+
     public void deleteBooking(Integer bookingId) {
         try {
             roomRepository.deleteById(bookingId);
         } catch (Exception e) {
-            throw new RuntimeException("No booking found to delete");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No booking found to delete");
         }
 
+    }
+
+    private Optional<RoomEntity> findExistingReservation(LocalDate bookStartDate) {
+        return roomRepository.findByRoomContaining(bookStartDate);
     }
 
 }

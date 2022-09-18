@@ -1,20 +1,22 @@
-package com.alten.hotelBooking.controller.request;
+package com.alten.hotelBooking.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.NonNull;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
-@AllArgsConstructor
-public class PostBookingRequest {
 
-    @JsonProperty("reservation_start_date")
+public class PatchBookingResponse {
+
+    @JsonProperty("book_id")
+    @NonNull
+    private Integer bookId;
+
+    @JsonProperty("new_reservation_start_date")
     @NonNull
     private LocalDate reservationStartDate;
 
-    @JsonProperty("reservation_end_date")
+    @JsonProperty("new_reservation_end_date")
     @NonNull
     private LocalDate reservationEndDate;
 

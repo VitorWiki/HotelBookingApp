@@ -1,5 +1,6 @@
 package com.alten.hotelBooking.repositories;
 
+import com.alten.hotelBooking.repositories.entities.RoomEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;

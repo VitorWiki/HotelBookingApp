@@ -1,4 +1,4 @@
-package com.alten.hotelBooking.repositories;
+package com.alten.hotelBooking.repositories.entities;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +13,7 @@ import java.time.LocalDate;
 public class RoomEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "book_id")
     private Integer bookId;
 
