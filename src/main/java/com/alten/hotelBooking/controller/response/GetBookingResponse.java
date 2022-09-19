@@ -15,9 +15,9 @@ public class GetBookingResponse {
     @JsonProperty("reservation_status")
     private String statusMessage;
 
-    @JsonProperty("reservation_start_day")
+    @JsonProperty("current_reservation_start_date")
     private LocalDate reservationStartDate;
 
-    @JsonProperty("reservation_end_day")
+    @JsonProperty("current_reservation_end_date")
     private LocalDate reservationEndDate;
 }

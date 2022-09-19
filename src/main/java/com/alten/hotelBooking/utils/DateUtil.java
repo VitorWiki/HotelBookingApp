@@ -1,28 +1,30 @@
 package com.alten.hotelBooking.utils;
 
+import com.alten.hotelBooking.enums.ErrorEnum;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-public class DateValidator {
+public class DateUtil {
 
     public static void dateValidations(LocalDate startDate, LocalDate endDate) {
 
         final LocalDate today = LocalDate.now();
 
         if(endDate.isBefore(startDate)) {
-            throw new RuntimeException("end date must be after start date");
+            throw new RuntimeException(ErrorEnum.END_DATE_BEFORE_START_DATE.getDescription());
         }
 
         if(daysReserved(startDate, endDate) > 2) {
-            throw new RuntimeException("number of days for booking can't pass 3 days");
+            throw new RuntimeException(ErrorEnum.RESERVATION_TIME_LONGER_THAN_3_DAYS.getDescription());
         }
 
         if (today.isEqual(startDate) || startDate.isBefore(today)) {
-            throw new RuntimeException("reservations can only start tommorow onwards");
+            throw new RuntimeException(ErrorEnum.RESERVATION_TODAY.getDescription());
         }
 
         if(daysReserved(today, startDate) > 30) {
-            throw new RuntimeException("reservations can only be made up until 30 days in the future");
+            throw new RuntimeException(ErrorEnum.RESERVATION_AFTER_30_DAYS.getDescription());
         }
 
     }

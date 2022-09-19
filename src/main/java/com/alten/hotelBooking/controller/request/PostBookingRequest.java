@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class PostBookingRequest {
 
-    @NotNull
+    @NotNull(message = "Client name must be present")
     @JsonProperty("client_name")
     private String clientName;
 

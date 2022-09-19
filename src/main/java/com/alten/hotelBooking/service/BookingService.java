@@ -5,10 +5,11 @@ import com.alten.hotelBooking.controller.request.PostBookingRequest;
 import com.alten.hotelBooking.controller.response.GetBookingResponse;
 import com.alten.hotelBooking.controller.response.PatchBookingResponse;
 import com.alten.hotelBooking.controller.response.PostBookingResponse;
+import com.alten.hotelBooking.enums.ErrorEnum;
 import com.alten.hotelBooking.mapper.EntityMapper;
 import com.alten.hotelBooking.repositories.entities.RoomEntity;
 import com.alten.hotelBooking.repositories.RoomRepository;
-import com.alten.hotelBooking.utils.DateValidator;
+import com.alten.hotelBooking.utils.DateUtil;
 import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,17 +26,18 @@ public class BookingService {
     RoomRepository roomRepository;
 
     final static String BOOKING_SUCCESS_RETURN = "Your reservation is completed";
+    final static String ROOM_AVAILABLE_FOR_BOOKING = "Room available for booking on this day";
 
     public PostBookingResponse bookRoom(PostBookingRequest request) {
 
-        DateValidator.dateValidations(request.getReservationStartDate(), request.getReservationEndDate());
+        DateUtil.dateValidations(request.getReservationStartDate(), request.getReservationEndDate());
 
-        LocalDate middleDay = DateValidator.getMiddleDate(request.getReservationStartDate(), request.getReservationEndDate());
+        LocalDate middleDay = DateUtil.getMiddleDate(request.getReservationStartDate(), request.getReservationEndDate());
 
         Optional<RoomEntity> existingRoom  = findExistingReservation(request.getReservationStartDate());
 
         if (existingRoom.isPresent()) {
-            throw new RuntimeException("Room already booked for this date");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ErrorEnum.ROOM_ALREADY_BOOKED.getDescription());
         }
 
         RoomEntity newRoomReservation = roomRepository.save(Mappers.getMapper(EntityMapper.class).mapPostFrom(request, middleDay));
@@ -50,9 +52,9 @@ public class BookingService {
 
         if (bookedRoom.isPresent()) {
             RoomEntity foundRoom = bookedRoom.get();
-            return new GetBookingResponse("Room not available", foundRoom.getReservationStartDate(), foundRoom.getReservationEndDate());
+            return Mappers.getMapper(EntityMapper.class).mapGetFromExistingEntity(foundRoom);
         }
-        return new GetBookingResponse("Room available!", null, null);
+        return new GetBookingResponse(ROOM_AVAILABLE_FOR_BOOKING, null, null);
     }
 
     public PatchBookingResponse updateBookingDate(PatchBookingRequest request) {
@@ -60,20 +62,20 @@ public class BookingService {
         Optional<RoomEntity> currentBook = roomRepository.findById(request.getBookId());
 
         if (currentBook.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No booking found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ErrorEnum.NO_RESERVATION_FOUND.getDescription());
         }
 
-        DateValidator.dateValidations(request.getNewReservationStartDate(), request.getNewReservationEndDate());
+        DateUtil.dateValidations(request.getNewReservationStartDate(), request.getNewReservationEndDate());
 
-        LocalDate middleDay = DateValidator.getMiddleDate(request.getNewReservationStartDate(), request.getNewReservationEndDate());
+        LocalDate middleDay = DateUtil.getMiddleDate(request.getNewReservationStartDate(), request.getNewReservationEndDate());
 
         if (!isUpdatePossibleOnSelectedDate(request, middleDay)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ErrorEnum.ROOM_ALREADY_BOOKED.getDescription());
         }
 
         RoomEntity updatedRoomReservation = roomRepository.save(Mappers.getMapper(EntityMapper.class).mapPatchFrom(request, currentBook.get(), middleDay));
 
-        return Mappers.getMapper(EntityMapper.class).mapFrom(updatedRoomReservation);
+        return Mappers.getMapper(EntityMapper.class).mapPatchFromEntity(updatedRoomReservation);
 
     }
 
@@ -81,7 +83,7 @@ public class BookingService {
         try {
             roomRepository.deleteById(bookingId);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No booking found to delete");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ErrorEnum.NO_RESERVATION_FOUND.getDescription());
         }
 
     }

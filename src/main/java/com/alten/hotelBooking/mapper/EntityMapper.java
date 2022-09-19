@@ -2,6 +2,7 @@ package com.alten.hotelBooking.mapper;
 
 import com.alten.hotelBooking.controller.request.PatchBookingRequest;
 import com.alten.hotelBooking.controller.request.PostBookingRequest;
+import com.alten.hotelBooking.controller.response.GetBookingResponse;
 import com.alten.hotelBooking.controller.response.PatchBookingResponse;
 import com.alten.hotelBooking.repositories.entities.RoomEntity;
 import org.mapstruct.Mapper;
@@ -13,6 +14,8 @@ import java.time.LocalDate;
 @Mapper
 public interface EntityMapper {
 
+    String ROOM_NOT_AVAILABLE = "Room not available for booking on this day";
+
     RoomEntity mapPostFrom(PostBookingRequest request, LocalDate reservationMiddleDate);
 
     @Mapping(target = "reservationStartDate", source = "request.newReservationStartDate")
@@ -21,5 +24,8 @@ public interface EntityMapper {
     @Mapping(target = "bookId", source = "previousRoom.bookId")
     RoomEntity mapPatchFrom(PatchBookingRequest request, RoomEntity previousRoom, LocalDate reservationMiddleDate);
 
-    PatchBookingResponse mapFrom(RoomEntity entity);
+    PatchBookingResponse mapPatchFromEntity(RoomEntity entity);
+
+    @Mapping(target = "statusMessage", constant = ROOM_NOT_AVAILABLE)
+    GetBookingResponse mapGetFromExistingEntity(RoomEntity entity);
 }
