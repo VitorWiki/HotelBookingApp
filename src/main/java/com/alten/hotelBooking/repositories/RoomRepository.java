@@ -8,5 +8,9 @@ import java.util.Optional;
 
 public interface RoomRepository extends JpaRepository<RoomEntity, Integer> {
 
-    Optional<RoomEntity> findByRoomContaining(LocalDate date);
+    Optional<RoomEntity> findByReservationStartDate(LocalDate date);
+
+    Optional<RoomEntity> findByReservationMiddleDate(LocalDate date);
+
+    Optional<RoomEntity> findByReservationEndDate(LocalDate date);
 }

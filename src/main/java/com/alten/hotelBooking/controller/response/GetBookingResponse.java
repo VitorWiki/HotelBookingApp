@@ -3,7 +3,6 @@ package com.alten.hotelBooking.controller.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -14,7 +13,6 @@ import java.time.LocalDate;
 public class GetBookingResponse {
 
     @JsonProperty("reservation_status")
-    @NonNull
     private String statusMessage;
 
     @JsonProperty("reservation_start_day")

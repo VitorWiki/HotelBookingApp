@@ -1,6 +1,5 @@
 package com.alten.hotelBooking.service;
 
-import com.alten.hotelBooking.controller.request.GetBookingRequest;
 import com.alten.hotelBooking.controller.request.PatchBookingRequest;
 import com.alten.hotelBooking.controller.request.PostBookingRequest;
 import com.alten.hotelBooking.controller.response.GetBookingResponse;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class BookingService {
@@ -29,9 +28,9 @@ public class BookingService {
 
     public PostBookingResponse bookRoom(PostBookingRequest request) {
 
-        LocalDate middleDay = DateValidator.getMiddleDate(request.getReservationStartDate(), request.getReservationEndDate());
+        DateValidator.dateValidations(request.getReservationStartDate(), request.getReservationEndDate());
 
-        DateValidator.dateValidations(request.getReservationStartDate(), request.getReservationEndDate(), middleDay);
+        LocalDate middleDay = DateValidator.getMiddleDate(request.getReservationStartDate(), request.getReservationEndDate());
 
         Optional<RoomEntity> existingRoom  = findExistingReservation(request.getReservationStartDate());
 
@@ -45,15 +44,14 @@ public class BookingService {
 
     }
 
-    public GetBookingResponse checkAvailability(GetBookingRequest request) {
+    public GetBookingResponse checkAvailability(LocalDate reservationDay) {
 
-        Optional<RoomEntity> bookedRoom = findExistingReservation(request.getReservationDay());
+        Optional<RoomEntity> bookedRoom = findExistingReservation(reservationDay);
 
         if (bookedRoom.isPresent()) {
             RoomEntity foundRoom = bookedRoom.get();
             return new GetBookingResponse("Room not available", foundRoom.getReservationStartDate(), foundRoom.getReservationEndDate());
         }
-
         return new GetBookingResponse("Room available!", null, null);
     }
 
@@ -65,9 +63,13 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No booking found");
         }
 
+        DateValidator.dateValidations(request.getNewReservationStartDate(), request.getNewReservationEndDate());
+
         LocalDate middleDay = DateValidator.getMiddleDate(request.getNewReservationStartDate(), request.getNewReservationEndDate());
 
-        DateValidator.dateValidations(request.getNewReservationStartDate(), request.getNewReservationEndDate(), middleDay);
+        if (!isUpdatePossibleOnSelectedDate(request, middleDay)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
 
         RoomEntity updatedRoomReservation = roomRepository.save(Mappers.getMapper(EntityMapper.class).mapPatchFrom(request, currentBook.get(), middleDay));
 
@@ -85,7 +87,34 @@ public class BookingService {
     }
 
     private Optional<RoomEntity> findExistingReservation(LocalDate bookStartDate) {
-        return roomRepository.findByRoomContaining(bookStartDate);
+
+        Optional<RoomEntity> firstDayBook = roomRepository.findByReservationStartDate(bookStartDate);
+        Optional<RoomEntity> midDayBook = roomRepository.findByReservationMiddleDate(bookStartDate);
+        Optional<RoomEntity> lastDayBook = roomRepository.findByReservationEndDate(bookStartDate);
+
+        List<Optional<RoomEntity>> existingBookedRoomList = Arrays.asList(firstDayBook, midDayBook, lastDayBook);
+
+        return existingBookedRoomList.stream().filter(Optional::isPresent).findFirst().orElse(Optional.empty());
+    }
+
+    private boolean isUpdatePossibleOnSelectedDate(PatchBookingRequest request, LocalDate middleDate) {
+
+        Optional<RoomEntity> firstDayBook = findExistingReservation(request.getNewReservationStartDate());
+        Optional<RoomEntity> lastDayBook = findExistingReservation(request.getNewReservationEndDate());
+        Optional<RoomEntity> middleDayBook = null == middleDate ? Optional.empty() : findExistingReservation(middleDate);
+
+        List<Optional<RoomEntity>> existingBookedRoomList = Arrays.asList(firstDayBook, middleDayBook, lastDayBook);
+
+        List<RoomEntity> sameTimeReservations = new ArrayList<>();
+
+       existingBookedRoomList.stream().filter(Optional::isPresent).forEach(RoomEntity -> {
+            RoomEntity room = RoomEntity.get();
+            if (!room.getBookId().equals(request.getBookId())) {
+                sameTimeReservations.add(room);
+            }
+        });
+
+        return existingBookedRoomList.stream().allMatch(Optional::isEmpty) || sameTimeReservations.isEmpty();
     }
 
 }

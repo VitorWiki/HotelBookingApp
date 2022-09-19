@@ -18,6 +18,7 @@ public interface EntityMapper {
     @Mapping(target = "reservationStartDate", source = "request.newReservationStartDate")
     @Mapping(target = "reservationEndDate", source = "request.newReservationEndDate")
     @Mapping(target = "reservationMiddleDate", source = "reservationMiddleDate")
+    @Mapping(target = "bookId", source = "previousRoom.bookId")
     RoomEntity mapPatchFrom(PatchBookingRequest request, RoomEntity previousRoom, LocalDate reservationMiddleDate);
 
     PatchBookingResponse mapFrom(RoomEntity entity);
