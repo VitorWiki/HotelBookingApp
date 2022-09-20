@@ -89,6 +89,11 @@
 				<configuration>
 					<excludes>
 						<exclude>**/*HotelBookingApplication.class</exclude>
+						<exclude>**/*Request.class</exclude>
+						<exclude>**/*Response.class</exclude>
+						<exclude>**/*Entity.class</exclude>
+						<exclude>**/*Enum.class</exclude>
+						<exclude>**/*Impl.class</exclude>
 					</excludes>
 				</configuration>
 				<executions>
@@ -116,12 +121,17 @@
 									<element>CLASS</element>
 									<excludes>
 										<exclude>**/*HotelBookingApplication.class</exclude>
+										<exclude>**/*Request.class</exclude>
+										<exclude>**/*Response.class</exclude>
+										<exclude>**/*Entity.class</exclude>
+										<exclude>**/*Enum.class</exclude>
+										<exclude>**/*Impl.class</exclude>
 									</excludes>
 									<limits>
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>1</minimum>
+											<minimum>0.7</minimum>
 										</limit>
 										<limit>
 											<counter>BRANCH</counter>

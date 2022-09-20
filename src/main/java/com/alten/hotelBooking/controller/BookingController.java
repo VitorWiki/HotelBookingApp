@@ -32,7 +32,7 @@ public class BookingController {
     public ResponseEntity<GetBookingResponse> getBookedRoom(@PathVariable("reservation_day")
                                                                 @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate reservationDay) {
 
-        return ResponseEntity.ok().body(facade.checkingRoom(reservationDay));
+        return ResponseEntity.ok().body(facade.checkingAvailableDate(reservationDay));
     }
 
     @PatchMapping(value = "/update_booking")

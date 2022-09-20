@@ -1,0 +1,131 @@
+{
+	"info": {
+		"_postman_id": "d6779f91-a408-422f-af3c-316fb54b9b8f",
+		"name": "Hotel Room Booking API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7546370"
+	},
+	"item": [
+		{
+			"name": "Book Room",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"client_name\": \"Vitor Bergamaschi\",\r\n    \"reservation_start_date\": \"2022-09-25\",\r\n    \"reservation_end_date\": \"2022-09-27\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/v1/booking_app/book_room",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"booking_app",
+						"book_room"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Room Availability",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/v1/booking_app/check_room_availability/2022-09-28",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"booking_app",
+						"check_room_availability",
+						"2022-09-28"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Room Reservation",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"book_id\": 1,\r\n    \"new_reservation_start_date\": \"2022-09-23\",\r\n    \"new_reservation_end_date\": \"2022-09-24\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/v1/booking_app/update_booking",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"booking_app",
+						"update_booking"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Reservation",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/v1/booking_app/delete_booking/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"v1",
+						"booking_app",
+						"delete_booking",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

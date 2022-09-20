@@ -22,7 +22,7 @@ public class BookingFacade {
         return bookingService.bookRoom(request);
     }
 
-    public GetBookingResponse checkingRoom(LocalDate reservationDay) {
+    public GetBookingResponse checkingAvailableDate(LocalDate reservationDay) {
 
         return bookingService.checkAvailability(reservationDay);
     }
